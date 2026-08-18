@@ -27,7 +27,7 @@ import type { VimMode } from "./state.ts";
 
 interface VimModeConfig {
   startMode?: "insert" | "normal";
-  modeChange?: { insert?: string; normal?: string };
+  modeChange?: { insert?: string; normal?: string; query?: string };
   /** Mount the vim editor at all (default true). */
   enabled?: boolean;
   /** Show the current mode in Pi's footer status area (default true). */
@@ -53,10 +53,11 @@ function loadConfig(): VimModeConfig {
       const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as { vimMode?: VimModeConfig };
       if (!parsed.vimMode) continue;
       if (parsed.vimMode.startMode === "normal") cfg.startMode = "normal";
-      if (parsed.vimMode.modeChange?.insert || parsed.vimMode.modeChange?.normal) {
+      if (parsed.vimMode.modeChange?.insert || parsed.vimMode.modeChange?.normal || parsed.vimMode.modeChange?.query) {
         cfg.modeChange = {
           insert: parsed.vimMode.modeChange?.insert,
           normal: parsed.vimMode.modeChange?.normal,
+          query: parsed.vimMode.modeChange?.query,
         };
       }
       if (typeof parsed.vimMode.enabled === "boolean") cfg.enabled = parsed.vimMode.enabled;
@@ -165,11 +166,27 @@ export default function (pi: ExtensionAPI) {
   });
 
   // --- Mode-change hook: IME switching + event-bus broadcast. ---
+  // With `modeChange.query`, the IME state when leaving INSERT is remembered
+  // and restored on the next entry: entering INSERT only runs the insert
+  // command if the IME was active (or never recorded); otherwise it stays off.
+  // Without a query command, behavior is the plain forced one (always run).
+  let imActive: boolean | undefined;
   const onModeChange = (mode: VimMode, previousMode: VimMode): void => {
+    const mc = config.modeChange;
     if (mode === "insert") {
-      runHook(config.modeChange?.insert);
+      if (imActive !== false) runHook(mc?.insert);
     } else if (previousMode === "insert") {
-      runHook(config.modeChange?.normal);
+      if (mc?.query) {
+        try {
+          exec(mc.query, { timeout: 1000 }, (_err, stdout) => {
+            // fcitx5-remote prints the state to stdout: 1 = inactive, 2 = active.
+            imActive = String(stdout ?? "").trim() === "2";
+          });
+        } catch {
+          // Ignore.
+        }
+      }
+      runHook(mc?.normal);
     }
     pi.events.emit("pi-vim-mode:mode-change", { mode, previousMode });
   };
