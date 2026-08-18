@@ -87,6 +87,24 @@ test("normal: escape without pending passes through to Pi", () => {
   assert.equal(log.superInput.length, 1);
 });
 
+test("normal: up/down delegate to Pi (history navigation like insert)", () => {
+  const state = createInitialState("normal");
+  const { ctx, log } = makeCtx(state);
+  handleNormalMode("\x1b[A", ctx); // up
+  handleNormalMode("\x1b[B", ctx); // down
+  assert.deepEqual(log.superInput, ["\x1b[A", "\x1b[B"]);
+});
+
+test("normal: up clears pending operator before delegating", () => {
+  const state = createInitialState("normal");
+  const { ctx, log } = makeCtx(state);
+  handleNormalMode("d", ctx);
+  assert.equal(state.pendingOp, "d");
+  handleNormalMode("\x1b[A", ctx); // up
+  assert.equal(state.pendingOp, null);
+  assert.deepEqual(log.superInput, ["\x1b[A"]);
+});
+
 test("normal: unmapped printable keys are ignored", () => {
   const state = createInitialState("normal");
   const { ctx, log } = makeCtx(state);

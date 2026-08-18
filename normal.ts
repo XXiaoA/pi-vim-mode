@@ -158,6 +158,14 @@ export function handleNormalMode(data: string, ctx: NormalModeContext): void {
     return;
   }
 
+  // --- Arrow keys: delegate to Pi (history navigation + cursor movement,
+  // --- exactly like INSERT mode). ---
+  if (matchesKey(data, "up") || matchesKey(data, "down")) {
+    resetPending(state);
+    ctx.superHandleInput(data);
+    return;
+  }
+
   // --- Enter: submit. ---
   if (matchesKey(data, "enter") || matchesKey(data, "return")) {
     resetPending(state);

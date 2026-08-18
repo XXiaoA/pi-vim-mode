@@ -57,7 +57,7 @@ Enter (or Ctrl+Enter)             # submit the prompt
 | Insert | `i a I A o O` |
 | Edit | `x X s S D C r{ch} ~ J gJ >> << p P u Ctrl-R Ctrl-A Ctrl-X` |
 | Operators | `d c y` + motion/text object; `dd cc yy`; `gu gU g~`; `> <` |
-| Other | `gv` reselect last visual, `Enter` submit |
+| Other | `gv` reselect last visual, `↑`/`↓` history navigation (like INSERT), `Enter` submit |
 
 Counts work everywhere: `3w`, `2dd`, `d2f,`, `5~`, `10<C-a>`. `{count}gg` / `{count}G` jump to an absolute line. `cw`/`cW` behave like `ce`/`cE` (vim semantics), and a single `dw` on the last word of a line stays on that line.
 
