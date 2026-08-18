@@ -1,32 +1,25 @@
 # pi-vim-mode
 
-Vim-style modal editing for the [Pi coding agent](https://pi.dev) prompt editor.
+Vim-style modal editing for the [Pi](https://pi.dev) prompt editor — INSERT / NORMAL / VISUAL / V-LINE modes, motions, operators, text objects, registers, IME-friendly mode switching, and theme-aware selection highlighting. Everything happens in place; your draft is never interrupted.
 
-Replace Pi's default Emacs-flavored input with real modal editing — INSERT, NORMAL, VISUAL and V-LINE modes, operators, text objects, theme-aware selection highlighting, and IME-friendly mode switching. Everything happens in place; your draft is never interrupted.
+> Requires Pi ≥ 0.80 (with `CustomEditor` support and `@earendil-works/pi-tui`).
 
 ## Features
 
-- **Modal editing** — INSERT / NORMAL / VISUAL / V-LINE modes with a live mode indicator (mode, pending operator, cursor position) on the editor border
-- **Full motion set** — `h j k l`, `w b e`, `W B E`, `0 $ ^ _`, `gg G` (count → absolute line), `f F t T ; ,`, `%`, counts
-- **Operators** — `d c y` with motions and text objects, `dd cc yy`, `gu gU g~`, `> <`, operator counts (`3dw`, `d2f,`, `3dd`)
-- **Text objects** — `iw aw iW aW`, quotes, brackets (nesting-aware), backticks; empty-object safety (`di"` never corrupts) and counted word objects
-- **Vim register semantics** — `y`, `c` and `d` (including `x X s D C`) all write the unnamed register; `p`/`P` paste from it
-- **Visual selection with live highlight** — extend with motions, `o` anchor swap, `v`/`V` switching, full edit set (`s` = `c`), `p` overwrite, `gv` reselect. The selection is a **theme background color** (auto-adapts light/dark) and the caret stays a distinct reverse-video cell. Highlighting follows pi-tui's word wrap exactly — wrapped lines, CJK/wide characters and scrolled documents stay aligned
-- **Pi-native integration** — autocomplete, paste, image attachment, external editor and app shortcuts keep working in INSERT mode; `Esc` closes autocomplete before switching modes; `Ctrl+C` interrupts a running agent but enters NORMAL when idle
-- **IME switching hooks** — run a shell command on mode transitions (e.g. `im-select`) so your input method follows the mode
-- **Paste safety** — pasted content (`[paste #N]` markers) survives vim edits; `/vimmode off` restores the default editor instantly
+- **Modal editing** — INSERT / NORMAL / VISUAL / V-LINE, live mode indicator (mode, pending operator, cursor position) on the editor border
+- **Vim register semantics** — `y`, `c` and `d` (incl. `x X s D C`) write the unnamed register; `p`/`P` paste from it
+- **Visual selection** — theme background highlight (auto-adapts light/dark), `o` anchor swap, `gv` reselect
+- **Pi-native INSERT** — autocomplete, paste, images, external editor keep working; `Esc` closes autocomplete first; `Ctrl+C` interrupts a running agent but enters NORMAL when idle
+- **IME switching** — run a shell command on mode transitions (e.g. `im-select`)
+- **Paste safety** — `[paste #N]` markers survive vim edits; `/vimmode off` restores the default editor
 
-## Installation
-
-The extension lives in Pi's global extensions directory and is auto-discovered:
+## Install
 
 ```bash
 git clone https://github.com/XXiaoA/pi-vim-mode ~/.pi/agent/extensions/vim-mode
 ```
 
-The directory name (`vim-mode`) is an abbreviation of the plugin name; Pi discovers the extension by the `index.ts` inside it, not by the directory name.
-
-Then `/reload` in Pi (or restart). Verify with `/vimmode status`.
+The directory name (`vim-mode`) is an abbreviation of the plugin name; Pi discovers the extension by the `index.ts` inside it, not by the directory name. Then `/reload` in Pi (or restart) and verify with `/vimmode status`.
 
 ## Quick start
 
@@ -69,8 +62,6 @@ Enter (or Ctrl+Enter)             # submit the prompt
 
 Counts work everywhere: `3w`, `2dd`, `d2f,`, `5~`, `10<C-a>`. `{count}gg` / `{count}G` jump to an absolute line. `cw`/`cW` behave like `ce`/`cE` (vim semantics), and a single `dw` on the last word of a line stays on that line.
 
-The bottom editor border shows the mode, the pending operator/count (`3d…`, `g…`) and the cursor position (`12:4`).
-
 ### VISUAL / V-LINE mode
 
 | Group | Keys |
@@ -80,8 +71,6 @@ The bottom editor border shows the mode, the pending operator/count (`3d…`, `g
 | Edit | `d x y c s r{ch} u U ~ > < J p` |
 | Lines | `D X Y C S` force whole-line operation |
 | Other | `gv` (from NORMAL) reselect, `Esc` cancel |
-
-The selection is drawn with a background color; the caret is the single reverse-video cell at the moving end, so it stays visible over the selection regardless of terminal cursor support.
 
 ### Text objects
 
@@ -109,9 +98,9 @@ Optional `vimMode` key in `~/.pi/agent/settings.json` or project `.pi/settings.j
 | Key | Default | Description |
 |---|---|---|
 | `vimMode.startMode` | `"insert"` | Mode for new prompts (and after submit): `"insert"` or `"normal"` |
-| `vimMode.enabled` | `true` | `false` disables mounting entirely — the editor slot is left to other extensions (the `/vimmode on` command can still mount it later) |
-| `vimMode.footerStatus` | `true` | Show the current mode in Pi's footer status area under the key `pi-vim-mode`; `false` hides it (the editor border label always shows the mode) |
-| `vimMode.selectionColor` | `"theme"` | Visual-selection **background**. `"theme"` (default) uses Pi's `selectedBg` and **auto-adapts when you switch light/dark themes**; or a fixed background — a `#rrggbb` hex (e.g. `"#3d3d5c"`) or a 0-255 ANSI index (e.g. `"238"`). The selection is always a background color so the reverse-video caret stays distinct |
+| `vimMode.enabled` | `true` | `false` leaves the editor slot to other extensions (the `/vimmode on` command can still mount it later) |
+| `vimMode.footerStatus` | `true` | Show the current mode in Pi's footer status area under the key `pi-vim-mode` |
+| `vimMode.selectionColor` | `"theme"` | Visual-selection **background**: `"theme"` (Pi's `selectedBg`, auto-adapts light/dark), a `#rrggbb` hex, or a 0-255 ANSI index |
 | `vimMode.modeChange.insert` | — | Shell command run on every transition **into** INSERT (IME on) |
 | `vimMode.modeChange.normal` | — | Shell command run when leaving INSERT for a non-insert mode (IME off) |
 
@@ -124,34 +113,6 @@ Optional `vimMode` key in `~/.pi/agent/settings.json` or project `.pi/settings.j
 | `/vimmode off` | Restore Pi's default editor immediately |
 | `/vimmode toggle` | Toggle |
 
-## Architecture
-
-```
-index.ts          Extension entry: deferred editor mount, /vimmode command, IME hooks,
-                  agent-busy tracking, pi-vim-mode:mode-change event-bus broadcast
-vim-editor.ts     VimEditor (extends CustomEditor): input routing, rendering
-                  (selection highlight, mode label), undo/redo, paste-registry
-                  preservation
-state.ts          Vim state machine (mode, counts, pending operators, registers)
-motions.ts        Pure cursor-motion computations (word/WORD/char-find/bracket classes)
-text-objects.ts   Pure text-object range computations
-operators.ts      Pure range operations (delete/change/yank/case/indent/number)
-highlight.ts      Pure selection-highlight rendering (word-wrap row mapping, ANSI-aware
-                  cell highlighting, selection-style resolution)
-modes/normal.ts   NORMAL-mode key handling
-modes/visual.ts   VISUAL / V-LINE mode key handling
-test/             Pure-function tests (node --test)
-```
-
-Design notes:
-
-- **`CustomEditor` subclass** — app-level keybindings (Esc abort, `Ctrl+D` exit, model switching) keep working; INSERT mode delegates everything to the base editor.
-- **Direct state writes** — cursor positioning and text rewrites touch the base editor's internal state (`state.lines` / `cursorLine` / `cursorCol` / `undoStack` / paste registry), following the approach validated by [pi-vim (burneikis)](https://github.com/burneikis/pi-vim) and [pi-vim (lajarre)](https://github.com/lajarre/pi-vim). Arrow-key emulation is wrong for absolute positioning because the base editor moves by *visual* (wrapped) rows.
-- **Pure logic, thin shell** — motions, text objects and operators are pure functions over `(lines, cursor)`, unit-tested against real Neovim behavior; the editor shell only routes keys and applies results.
-- **Register policy** — vim semantics: `y`, `c` and `d` (including `x X s D C`) all write the unnamed register; `p`/`P` paste from it.
-- **Paste-registry preservation** — `setText` is overridden to snapshot and restore Pi's `[paste #N]` markers, so pasted content survives vim rewrites.
-- **Single-owner editor slot** — Pi exposes one editor factory per session. Mounting is deferred to the next tick so this extension wins the slot deterministically regardless of load order.
-
 ## Integration with other extensions
 
 ### Mode events
@@ -159,76 +120,36 @@ Design notes:
 Every mode transition is broadcast on Pi's extension event bus:
 
 ```ts
-// In your own extension:
 pi.events.on("pi-vim-mode:mode-change", (data) => {
   const { mode, previousMode } = data as { mode: string; previousMode: string };
   // mode: "insert" | "normal" | "visual" | "visual-line"
 });
 ```
 
-### Mode in the footer
+With `vimMode.footerStatus` enabled (default), the mode is also published to Pi's footer status area under the key `pi-vim-mode` (`ctx.ui.setStatus("pi-vim-mode", ...)`).
 
-With `vimMode.footerStatus` enabled (default), the current mode is published to Pi's footer status area under the key `pi-vim-mode` (`ctx.ui.setStatus("pi-vim-mode", ...)`). Other extensions can read or override it freely.
+### Render hooks
 
-### Decorating the vim editor (render hooks)
-
-Extensions that previously replaced the editor just to add rendering (a status line, an info row, a border tint) can keep that look without owning the editor slot. Register a render decorator on the `globalThis` interop registry before `session_start`; the vim editor applies all registered hooks to its rendered output:
+Extensions that previously replaced the editor just to add rendering (a status line, a border tint) can keep that look without owning the editor slot. Register a decorator on the `globalThis` interop registry at module top level (before `session_start`); the vim editor applies all registered hooks to its rendered output:
 
 ```ts
-// In your extension, at module top level (runs before session_start):
 (globalThis as any).__piVimModeRenderHooks ??= [];
-
-// After-render decoration (lines: [top border, ...content, bottom border, ...autocomplete]):
-(globalThis as any).__piVimModeRenderHooks.push((lines, width, editor) => {
-  // editor: the VimEditor instance (isShowingAutocomplete(), getMode() …)
-  return lines; // return modified lines
-});
-
-// Or a two-phase decorator — border tinting MUST run before rendering,
-// because Pi re-assigns editor.borderColor (thinking level / bash mode) on
-// every frame:
 (globalThis as any).__piVimModeRenderHooks.push({
-  beforeRender: (editor) => { editor.borderColor = (s) => theme.fg("dim", s); },
+  // Must run before rendering: Pi re-assigns editor.borderColor on every frame.
+  beforeRender: (editor) => {
+    const colors = { insert: "borderMuted", normal: "borderAccent", visual: "customMessageLabel", "visual-line": "customMessageLabel" };
+    editor.borderColor = (s) => theme.fg(colors[editor.getMode()] ?? "border", s);
+  },
+  // lines: [top border, ...content, bottom border, ...autocomplete]
   afterRender: (lines, width, editor) => lines,
 });
 ```
 
-This is an informal interop protocol — it works across extensions in the same Pi process regardless of load order (hooks are registered synchronously at load; the vim editor mounts one tick later and reads the registry). When the vim editor is disabled (`/vimmode off`) or absent, registered hooks are simply unused.
-
-### Mode-aware decoration (border color per mode)
-
-Hooks receive the live `VimEditor` instance, which exposes `getMode()` (and `isShowingAutocomplete()`). Because `beforeRender` runs on every frame, you can drive per-mode styling there:
-
-```ts
-(globalThis as any).__piVimModeRenderHooks ??= [];
-(globalThis as any).__piVimModeRenderHooks.push({
-  beforeRender: (editor) => {
-    const colors = {
-      insert: "borderMuted",
-      normal: "borderAccent",
-      visual: "customMessageLabel",
-      "visual-line": "customMessageLabel",
-    };
-    editor.borderColor = (s) => theme.fg(colors[editor.getMode()] ?? "border", s);
-  },
-});
-```
-
-Use `beforeRender` for anything that must reflect the current mode **synchronously on every frame** (border colors, per-mode labels). Use the `pi-vim-mode:mode-change` event for one-shot reactions.
+Hooks run regardless of extension load order (registered synchronously at load; the vim editor mounts one tick later). When the vim editor is disabled or absent, hooks are simply unused.
 
 ### Editor slot ownership
 
-Pi exposes a **single** editor factory per session — the last extension to call `ctx.ui.setEditorComponent()` wins, and previous editors are destroyed. This extension mounts one tick after `session_start`, so it deterministically wins the slot over extensions that mount synchronously.
-
-- If another extension's editor-side rendering disappears, that is the slot handover — its non-editor features (footer, widgets, events) are unaffected; convert its render work into a render hook to get it back.
-- To leave the slot to another extension entirely, set `vimMode.enabled: false` (or `/vimmode off` at runtime).
-- There is no supported way to compose two custom editors; Pi's API does not guarantee coexistence.
-
-## Compatibility
-
-- Requires a recent Pi with `CustomEditor` support and `@earendil-works/pi-tui` (tested against Pi ≥ 0.80).
-- DECSCUSR cursor shapes (INSERT hardware bar) are best-effort; terminals without support fall back to Pi's software cursor.
-- The internal-state dependency is stable across current Pi releases but is not a public API — Pi upgrades may require an update.
+Pi exposes a **single** editor factory per session — the last extension to call `ctx.ui.setEditorComponent()` wins. This extension mounts one tick after `session_start`, so it wins deterministically over extensions that mount synchronously; if another extension's editor-side rendering disappears, that is the slot handover (its non-editor features are unaffected — convert its render work into a render hook). To leave the slot to another extension entirely, set `vimMode.enabled: false` (or `/vimmode off`).
 
 ## Limitations
 
@@ -236,24 +157,19 @@ Pi exposes a **single** editor factory per session — the last extension to cal
 - **`jj` escape alias** — a 250 ms buffer window delays the `j` keypress in INSERT mode; pinyin double-pinyin input that types `jj` may trigger an accidental mode switch.
 - **INSERT has no newline key** — `Enter` and `Ctrl+Enter` both submit (Pi-native). Multi-line input is done with `o` / `O` / `I` / `A` from NORMAL.
 - **No search / marks / macros / visual-block / replace mode / EX command line** — intentionally out of scope; `%` bracket matching and `r{char}` are included.
-- **Selection highlight is a background color** applied by render-time ANSI (`\x1b[48;**), distinct from the reverse-video caret. Row/column mapping mirrors pi-tui's word wrap, so wrapped lines, CJK characters and scrolled documents highlight accurately; only a grapheme wider than the whole editor (a paste marker in a very narrow window) is approximated.
-- **Visual sub-mode switches (`v` ↔ `V`) bypass the status hooks** — footer status and `pi-vim-mode:mode-change` only fire on INSERT ↔ NORMAL ↔ VISUAL/V-LINE boundaries; toggling within visual emits nothing (the editor border label still updates).
+- **Selection highlight is a background color** applied by render-time ANSI, distinct from the reverse-video caret. Row/column mapping mirrors pi-tui's word wrap, so wrapped lines, CJK characters and scrolled documents highlight accurately; only a grapheme wider than the whole editor (a paste marker in a very narrow window) is approximated.
+- **Visual sub-mode switches (`v` ↔ `V`) bypass the status hooks** — footer status and `pi-vim-mode:mode-change` only fire on INSERT ↔ NORMAL ↔ VISUAL/V-LINE boundaries.
 
 ## Development
 
 ```bash
-# Type-check (requires typescript + @types/node)
-npx tsc -p tsconfig.json
-
-# Run the test suite (node >= 23.6 runs TS directly)
-node --test test/*.test.ts
+npx tsc -p tsconfig.json       # type-check
+node --test test/*.test.ts     # run the suite (60 tests; expected values verified against nvim --headless)
 ```
-
-The suite (60 tests) covers motions, text objects, operators, mode handlers, selection-highlight rendering and config wiring, with expected values verified against real Neovim (`nvim --headless` probes).
 
 ## Acknowledgments
 
-Inspired by and referencing the Pi extension ecosystem:
+Inspired by and referencing the Pi extension ecosystem (all MIT):
 
 - Pi's official [`modal-editor.ts` example](https://github.com/earendil-works/pi) — the `CustomEditor` subclass pattern, insert-mode delegation, and border mode-label rendering.
 - [pi-vim](https://github.com/burneikis/pi-vim) (burneikis) — writing the base editor's internal state for wrap-independent cursor positioning; `setText` paste-registry preservation; the render-time selection highlight algorithm with ANSI sequence handling.
