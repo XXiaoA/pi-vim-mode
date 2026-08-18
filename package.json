@@ -1,0 +1,27 @@
+{
+  "name": "pi-vim-mode",
+  "version": "0.1.0",
+  "description": "Vim-style modal editing for the Pi coding agent prompt editor",
+  "license": "MIT",
+  "keywords": ["pi-package", "vim", "editor"],
+  "files": [
+    "index.ts",
+    "vim-editor.ts",
+    "state.ts",
+    "motions.ts",
+    "text-objects.ts",
+    "operators.ts",
+    "highlight.ts",
+    "normal.ts",
+    "visual.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": ["./index.ts"]
+  },
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}
