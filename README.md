@@ -10,7 +10,7 @@ Vim-style modal editing for the [Pi](https://pi.dev) prompt editor — INSERT / 
 - **Vim register semantics** — `y`, `c` and `d` (incl. `x X s D C`) write the unnamed register; `p`/`P` paste from it
 - **Visual selection** — theme background highlight (auto-adapts light/dark), `o` anchor swap, `gv` reselect
 - **Pi-native INSERT** — autocomplete, paste, images, external editor keep working; `Esc` closes autocomplete first; `Ctrl+C` interrupts a running agent but enters NORMAL when idle
-- **IME switching** — run a shell command on mode transitions (e.g. `im-select`)
+- **IME switching (fcitx5)** — built-in, auto-detected: the input method activates in INSERT and deactivates outside it, remembering the last state across INSERT exits
 - **Paste safety** — `[paste #N]` markers survive vim edits; `/vimmode off` restores the default editor
 
 ## Install
@@ -77,21 +77,18 @@ Counts work everywhere: `3w`, `2dd`, `d2f,`, `5~`, `10<C-a>`. `{count}gg` / `{co
 
 ## Configuration
 
-Optional `vimMode` key in `~/.pi/agent/settings.json` or project `.pi/settings.json`:
+Optional `vimMode` key in `~/.pi/agent/settings.json` or project `.pi/settings.json`. Example (a sample, not the defaults — see the table below):
 
 ```json
 {
   "vimMode": {
     "startMode": "normal",
-    "insertExit": { "enabled": true, "timeout": 250, "keys": ["jj"] },
-    "modeChange": {
-      "insert": "fcitx5-remote -o",
-      "normal": "fcitx5-remote -c",
-      "query": "fcitx5-remote"
-    }
+    "insertExit": { "enabled": true, "timeout": 250, "keys": ["jj"] }
   }
 }
 ```
+
+IME switching needs no configuration: when `fcitx5-remote` is detected on PATH, the input method is activated on entering INSERT and deactivated on leaving, remembering the last state (a manual switch to English inside INSERT is restored on the next entry).
 
 | Key | Default | Description |
 |---|---|---|
@@ -99,12 +96,12 @@ Optional `vimMode` key in `~/.pi/agent/settings.json` or project `.pi/settings.j
 | `vimMode.enabled` | `true` | `false` leaves the editor slot to other extensions (the `/vimmode on` command can still mount it later) |
 | `vimMode.footerStatus` | `true` | Show the current mode in Pi's footer status area under the key `pi-vim-mode` |
 | `vimMode.selectionColor` | `"theme"` | Visual-selection **background**: `"theme"` (Pi's `selectedBg`, auto-adapts light/dark), a `#rrggbb` hex, or a 0-255 ANSI index |
-| `vimMode.modeChange.insert` | — | Shell command run on every transition **into** INSERT (IME on) |
-| `vimMode.modeChange.normal` | — | Shell command run when leaving INSERT for a non-insert mode (IME off) |
-| `vimMode.modeChange.query` | — | Optional state query (e.g. `fcitx5-remote`, prints `1` inactive / `2` active). When set, the IME state on leaving INSERT is remembered and restored on the next entry; without it, the insert command always runs |
+| `vimMode.ime` | `true` | Built-in fcitx5 IME switching: activates the input method in INSERT, deactivates outside it, remembering the last state; no effect when `fcitx5-remote` is not on PATH |
 | `vimMode.insertExit.enabled` | `false` | Enable insert-mode exit sequences (e.g. `jj`): typing a sequence in INSERT leaves to NORMAL |
 | `vimMode.insertExit.timeout` | `250` | Buffer window (ms) between sequence keys; a lone first key is inserted after it times out |
 | `vimMode.insertExit.keys` | `["jj"]` | Exit sequences, each 2+ chars; any number allowed (e.g. `["jj", "jk"]`) |
+
+IME switching (fcitx5) is built in and needs no configuration; it is active whenever `fcitx5-remote` is on PATH, and can be turned off with `vimMode.ime: false`.
 
 ## Commands
 

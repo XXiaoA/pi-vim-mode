@@ -9,13 +9,14 @@
  * Optional settings (settings.json, global or project):
  * ```json
  * { "vimMode": {
- *     "startMode": "normal",            // "insert" (default) | "normal"
- *     "modeChange": {
- *       "insert": "im-select im.rime.inputmethod.Squirrel.Hans",
- *       "normal": "im-select com.apple.keylayout.ABC"
- *     }
+ *     "startMode": "normal"
  * } }
  * ```
+ *
+ * IME switching: when `fcitx5-remote` is detected on PATH, the input method is
+ * activated on entering INSERT and deactivated on leaving, remembering the
+ * last state (a manual switch to English inside INSERT is restored on the
+ * next entry).
  */
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { exec } from "node:child_process";
@@ -27,13 +28,18 @@ import type { VimMode } from "./state.ts";
 
 interface VimModeConfig {
   startMode?: "insert" | "normal";
-  modeChange?: { insert?: string; normal?: string; query?: string };
   /** Mount the vim editor at all (default true). */
   enabled?: boolean;
   /** Show the current mode in Pi's footer status area (default true). */
   footerStatus?: boolean;
   /** Visual-selection background: "theme" (default), a #rrggbb hex, or a 0-255 index. */
   selectionColor?: string;
+  /**
+   * Built-in fcitx5 IME switching (default true): activates the input method
+   * in INSERT, deactivates outside it, remembering the last state. No effect
+   * when fcitx5-remote is not on PATH.
+   */
+  ime?: boolean;
   /**
    * Insert-mode exit sequences (e.g. jj), off by default:
    * `{ "enabled": true, "timeout": 250, "keys": ["jj"] }`
@@ -52,13 +58,8 @@ function loadConfig(): VimModeConfig {
       if (!fs.existsSync(file)) continue;
       const parsed = JSON.parse(fs.readFileSync(file, "utf8")) as { vimMode?: VimModeConfig };
       if (!parsed.vimMode) continue;
-      if (parsed.vimMode.startMode === "normal") cfg.startMode = "normal";
-      if (parsed.vimMode.modeChange?.insert || parsed.vimMode.modeChange?.normal || parsed.vimMode.modeChange?.query) {
-        cfg.modeChange = {
-          insert: parsed.vimMode.modeChange?.insert,
-          normal: parsed.vimMode.modeChange?.normal,
-          query: parsed.vimMode.modeChange?.query,
-        };
+      if (typeof parsed.vimMode.startMode === "string" && parsed.vimMode.startMode === "normal") {
+        cfg.startMode = "normal";
       }
       if (typeof parsed.vimMode.enabled === "boolean") cfg.enabled = parsed.vimMode.enabled;
       if (typeof parsed.vimMode.footerStatus === "boolean") {
@@ -67,6 +68,7 @@ function loadConfig(): VimModeConfig {
       if (typeof parsed.vimMode.selectionColor === "string") {
         cfg.selectionColor = parsed.vimMode.selectionColor;
       }
+      if (typeof parsed.vimMode.ime === "boolean") cfg.ime = parsed.vimMode.ime;
       if (parsed.vimMode.insertExit && typeof parsed.vimMode.insertExit === "object") {
         const ie = parsed.vimMode.insertExit;
         cfg.insertExit = {
@@ -165,28 +167,39 @@ export default function (pi: ExtensionAPI) {
     busy = false;
   });
 
-  // --- Mode-change hook: IME switching + event-bus broadcast. ---
-  // With `modeChange.query`, the IME state when leaving INSERT is remembered
-  // and restored on the next entry: entering INSERT only runs the insert
-  // command if the IME was active (or never recorded); otherwise it stays off.
-  // Without a query command, behavior is the plain forced one (always run).
+  // --- Built-in fcitx5 IME switching (the only supported IME for now). ---
+  // Auto-detected via `command -v`; when available, entering INSERT activates
+  // the input method and leaving deactivates it. The state on leaving INSERT
+  // is remembered (`fcitx5-remote` prints 2 when active), so a manual switch
+  // to English inside INSERT is restored on the next entry instead of being
+  // forced back to Chinese. Disable with `vimMode.ime: false`.
+  let fcitx5Available = false;
   let imActive: boolean | undefined;
+  if (config.ime !== false) {
+    try {
+      exec("command -v fcitx5-remote", { timeout: 1000 }, (err) => {
+        fcitx5Available = !err;
+      });
+    } catch {
+      // Ignore.
+    }
+  }
+
+  // --- Mode-change hook: fcitx5 switching + event-bus broadcast. ---
   const onModeChange = (mode: VimMode, previousMode: VimMode): void => {
-    const mc = config.modeChange;
-    if (mode === "insert") {
-      if (imActive !== false) runHook(mc?.insert);
-    } else if (previousMode === "insert") {
-      if (mc?.query) {
+    if (fcitx5Available) {
+      if (mode === "insert") {
+        if (imActive !== false) runHook("fcitx5-remote -o");
+      } else if (previousMode === "insert") {
         try {
-          exec(mc.query, { timeout: 1000 }, (_err, stdout) => {
-            // fcitx5-remote prints the state to stdout: 1 = inactive, 2 = active.
+          exec("fcitx5-remote", { timeout: 1000 }, (_err, stdout) => {
             imActive = String(stdout ?? "").trim() === "2";
           });
         } catch {
           // Ignore.
         }
+        runHook("fcitx5-remote -c");
       }
-      runHook(mc?.normal);
     }
     pi.events.emit("pi-vim-mode:mode-change", { mode, previousMode });
   };
