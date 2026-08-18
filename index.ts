@@ -34,6 +34,11 @@ interface VimModeConfig {
   footerStatus?: boolean;
   /** Visual-selection background: "theme" (default), a #rrggbb hex, or a 0-255 index. */
   selectionColor?: string;
+  /**
+   * Insert-mode exit sequences (e.g. jj), off by default:
+   * `{ "enabled": true, "timeout": 250, "keys": ["jj"] }`
+   */
+  insertExit?: { enabled?: boolean; timeout?: number; keys?: string[] };
 }
 
 function loadConfig(): VimModeConfig {
@@ -60,6 +65,14 @@ function loadConfig(): VimModeConfig {
       }
       if (typeof parsed.vimMode.selectionColor === "string") {
         cfg.selectionColor = parsed.vimMode.selectionColor;
+      }
+      if (parsed.vimMode.insertExit && typeof parsed.vimMode.insertExit === "object") {
+        const ie = parsed.vimMode.insertExit;
+        cfg.insertExit = {
+          enabled: ie.enabled === true,
+          timeout: typeof ie.timeout === "number" ? ie.timeout : undefined,
+          keys: Array.isArray(ie.keys) ? ie.keys : undefined,
+        };
       }
     } catch {
       // Ignore malformed settings files.
@@ -166,6 +179,7 @@ export default function (pi: ExtensionAPI) {
     isAgentBusy: () => busy,
     onModeChange,
     selectionColor: config.selectionColor,
+    insertExit: config.insertExit,
     themeColor: (name) => {
       // Resolve a named theme color (pi's `getBgAnsi` returns an ANSI sequence
       // for the *active* theme, so it auto-adapts when you switch themes).

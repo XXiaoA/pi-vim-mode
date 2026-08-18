@@ -142,8 +142,8 @@ function toggleChar(ch: string): string {
 export function handleNormalMode(data: string, ctx: NormalModeContext): void {
   const { state } = ctx;
 
-  // --- Escape / Ctrl-C: cancel pending state, or pass through to Pi. ---
-  if (matchesKey(data, "escape") || matchesKey(data, "ctrl+c")) {
+  // --- Escape / Ctrl+[ / Ctrl-C: cancel pending state, or pass through to Pi. ---
+  if (matchesKey(data, "escape") || matchesKey(data, "ctrl+[") || matchesKey(data, "ctrl+c")) {
     if (
       state.pendingOp ||
       state.pendingChar ||

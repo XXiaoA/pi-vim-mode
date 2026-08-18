@@ -45,6 +45,12 @@ export interface VimEditorOptions {
   selectionColor?: string;
   /** Resolver for theme colors, used by `selectionColor: "theme"`. */
   themeColor?: (name: string) => string | undefined;
+  /**
+   * Insert-mode exit sequences (e.g. `["jj"]` — press the keys in sequence to
+   * leave INSERT). Disabled unless `enabled` is true; `keys` default to
+   * `["jj"]`, `timeout` defaults to 250 ms.
+   */
+  insertExit?: { enabled?: boolean; timeout?: number; keys?: string[] };
 }
 
 interface EditorInternals {
@@ -66,7 +72,7 @@ export class VimEditor extends CustomEditor {
   readonly vimState: VimState;
   private options: VimEditorOptions;
   private redoStack: Array<{ lines: string[]; cursorLine: number; cursorCol: number }> = [];
-  private jjTimer: ReturnType<typeof setTimeout> | null = null;
+  private exitTimer: ReturnType<typeof setTimeout> | null = null;
   private selectionStyle: { start: string; end: string };
 
   constructor(
@@ -263,8 +269,8 @@ export class VimEditor extends CustomEditor {
   // --- Insert ---
 
   private handleInsert(data: string): void {
-    // Escape: close autocomplete first; otherwise enter normal mode.
-    if (matchesKey(data, "escape")) {
+    // Escape / Ctrl+[: close autocomplete first; otherwise enter normal mode.
+    if (matchesKey(data, "escape") || matchesKey(data, "ctrl+[")) {
       if (this.isShowingAutocomplete?.()) {
         super.handleInput(data);
         return;
@@ -282,38 +288,67 @@ export class VimEditor extends CustomEditor {
       super.handleInput(data);
       return;
     }
-    // jj: escape alias with a short buffer window.
-    if (data === "j") {
-      if (this.vimState.jjPending) {
-        this.vimState.jjPending = false;
-        if (this.jjTimer) {
-          clearTimeout(this.jjTimer);
-          this.jjTimer = null;
+    // User-configured exit sequences (e.g. jj) with a buffer window.
+    const exits = this.exitSequences();
+    if (exits.length > 0) {
+      const buf = this.vimState.exitBuf;
+      if (buf) {
+        const candidate = buf + data;
+        this.clearExitTimer();
+        this.vimState.exitBuf = "";
+        if (exits.some((s) => s === candidate)) {
+          this.setMode("normal");
+          return;
         }
-        this.setMode("normal");
+        if (exits.some((s) => s.startsWith(candidate))) {
+          // Still a prefix of a longer sequence: keep buffering.
+          this.vimState.exitBuf = candidate;
+          this.startExitTimer();
+          return;
+        }
+        // Mismatch: flush the buffered keys, then process the current key.
+        super.handleInput(buf);
+      }
+      if (exits.some((s) => s.startsWith(data))) {
+        this.vimState.exitBuf = data;
+        this.startExitTimer();
         return;
       }
-      this.vimState.jjPending = true;
-      this.jjTimer = setTimeout(() => {
-        this.jjTimer = null;
-        if (this.vimState.jjPending) {
-          this.vimState.jjPending = false;
-          super.handleInput("j");
-          this.tui.requestRender?.();
-        }
-      }, 250);
-      return;
-    }
-    if (this.vimState.jjPending) {
-      this.vimState.jjPending = false;
-      if (this.jjTimer) {
-        clearTimeout(this.jjTimer);
-        this.jjTimer = null;
-      }
-      super.handleInput("j");
     }
     // Everything else (including Tab, autocomplete, paste, external editor).
     super.handleInput(data);
+  }
+
+  /** Configured exit sequences (2+ chars); empty when disabled. */
+  private exitSequences(): string[] {
+    const cfg = this.options.insertExit;
+    if (!cfg?.enabled) return [];
+    const keys = cfg.keys && cfg.keys.length > 0 ? cfg.keys : ["jj"];
+    return keys.filter((k) => k.length >= 2);
+  }
+
+  private exitTimeout(): number {
+    return this.options.insertExit?.timeout ?? 250;
+  }
+
+  private startExitTimer(): void {
+    this.clearExitTimer();
+    this.exitTimer = setTimeout(() => {
+      this.exitTimer = null;
+      const buf = this.vimState.exitBuf;
+      if (buf) {
+        this.vimState.exitBuf = "";
+        super.handleInput(buf);
+        this.tui.requestRender?.();
+      }
+    }, this.exitTimeout());
+  }
+
+  private clearExitTimer(): void {
+    if (this.exitTimer) {
+      clearTimeout(this.exitTimer);
+      this.exitTimer = null;
+    }
   }
 
   // --- Normal / Visual ---

@@ -46,8 +46,8 @@ export interface VimState {
   reg: RegisterData | null;
   /** Last f/F/t/T search for ; and , */
   lastFind: { char: string; forward: boolean; inclusive: boolean } | null;
-  /** jj buffer */
-  jjPending: boolean;
+  /** Insert-mode exit-sequence buffer (user-configured, e.g. jj) */
+  exitBuf: string;
 }
 
 export function createInitialState(startMode: VimMode = "insert"): VimState {
@@ -65,7 +65,7 @@ export function createInitialState(startMode: VimMode = "insert"): VimState {
     lastVisual: null,
     reg: null,
     lastFind: null,
-    jjPending: false,
+    exitBuf: "",
   };
 }
 

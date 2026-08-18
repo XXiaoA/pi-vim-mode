@@ -25,8 +25,7 @@ The directory name (`vim-mode`) is an abbreviation of the plugin name; Pi discov
 
 ```text
 Type normally…                    # INSERT mode (Pi-native input)
-Esc                               # → NORMAL
-jj                                # → NORMAL (insert-mode alias)
+Esc (or Ctrl+[)                   # → NORMAL
 w b e 0 $ ^ gg G                  # move around
 3G / 2gg                          # jump to a line
 f{char} ; ,                       # find on line, repeat
@@ -43,8 +42,8 @@ Enter (or Ctrl+Enter)             # submit the prompt
 
 | Mode | Enter with | Notes |
 |---|---|---|
-| INSERT | (start) `i a I A o O`, after `c`/`s`/`C`/`S` | Pi-native: autocomplete, paste, image, external editor. `Enter` / `Ctrl+Enter` submits. `Esc` / `jj` / `Ctrl+C` (idle) → NORMAL |
-| NORMAL | `Esc`, `jj`, `Ctrl+C` (idle) | `Enter` / `Ctrl+Enter` submits the prompt |
+| INSERT | (start) `i a I A o O`, after `c`/`s`/`C`/`S` | Pi-native: autocomplete, paste, image, external editor. `Enter` / `Ctrl+Enter` submits. `Esc` / `Ctrl+[` / `Ctrl+C` (idle) → NORMAL |
+| NORMAL | `Esc`, `Ctrl+[`, `Ctrl+C` (idle) | `Enter` / `Ctrl+Enter` submits the prompt |
 | VISUAL | `v` | Character-wise selection, theme-background highlight |
 | V-LINE | `V` | Line-wise selection |
 
@@ -84,12 +83,10 @@ Optional `vimMode` key in `~/.pi/agent/settings.json` or project `.pi/settings.j
 {
   "vimMode": {
     "startMode": "normal",
-    "enabled": true,
-    "footerStatus": true,
-    "selectionColor": "theme",
+    "insertExit": { "enabled": true, "timeout": 250, "keys": ["jj"] },
     "modeChange": {
-      "insert": "im-select im.rime.inputmethod.Squirrel.Hans",
-      "normal": "im-select com.apple.keylayout.ABC"
+      "insert": "fcitx5-remote -o",
+      "normal": "fcitx5-remote -c"
     }
   }
 }
@@ -103,6 +100,9 @@ Optional `vimMode` key in `~/.pi/agent/settings.json` or project `.pi/settings.j
 | `vimMode.selectionColor` | `"theme"` | Visual-selection **background**: `"theme"` (Pi's `selectedBg`, auto-adapts light/dark), a `#rrggbb` hex, or a 0-255 ANSI index |
 | `vimMode.modeChange.insert` | — | Shell command run on every transition **into** INSERT (IME on) |
 | `vimMode.modeChange.normal` | — | Shell command run when leaving INSERT for a non-insert mode (IME off) |
+| `vimMode.insertExit.enabled` | `false` | Enable insert-mode exit sequences (e.g. `jj`): typing a sequence in INSERT leaves to NORMAL |
+| `vimMode.insertExit.timeout` | `250` | Buffer window (ms) between sequence keys; a lone first key is inserted after it times out |
+| `vimMode.insertExit.keys` | `["jj"]` | Exit sequences, each 2+ chars; any number allowed (e.g. `["jj", "jk"]`) |
 
 ## Commands
 
@@ -154,7 +154,7 @@ Pi exposes a **single** editor factory per session — the last extension to cal
 ## Limitations
 
 - **Undo granularity** — `u` delegates to Pi's native undo (one Pi edit step, not one vim change); `<C-r>` redo uses a linear mirror stack. No undo tree.
-- **`jj` escape alias** — a 250 ms buffer window delays the `j` keypress in INSERT mode; pinyin double-pinyin input that types `jj` may trigger an accidental mode switch.
+- **Insert-mode exit sequences (e.g. `jj`)** — off by default; when enabled, the buffer window (default 250 ms) delays the first key of the sequence, and pinyin double-pinyin input that types the sequence may trigger an accidental mode switch.
 - **INSERT has no newline key** — `Enter` and `Ctrl+Enter` both submit (Pi-native). Multi-line input is done with `o` / `O` / `I` / `A` from NORMAL.
 - **No search / marks / macros / visual-block / replace mode / EX command line** — intentionally out of scope; `%` bracket matching and `r{char}` are included.
 - **Selection highlight is a background color** applied by render-time ANSI, distinct from the reverse-video caret. Row/column mapping mirrors pi-tui's word wrap, so wrapped lines, CJK characters and scrolled documents highlight accurately; only a grapheme wider than the whole editor (a paste marker in a very narrow window) is approximated.

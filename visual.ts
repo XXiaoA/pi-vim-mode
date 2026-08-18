@@ -140,8 +140,8 @@ export function handleVisualMode(data: string, ctx: VisualModeContext): void {
   const lines = ctx.getText().split("\n");
   const cursor = ctx.getCursor();
 
-  // --- Escape / Ctrl-C: cancel selection. ---
-  if (matchesKey(data, "escape") || matchesKey(data, "ctrl+c")) {
+  // --- Escape / Ctrl+[ / Ctrl-C: cancel selection. ---
+  if (matchesKey(data, "escape") || matchesKey(data, "ctrl+[") || matchesKey(data, "ctrl+c")) {
     exitVisual(ctx);
     return;
   }
