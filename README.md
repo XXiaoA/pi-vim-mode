@@ -263,4 +263,4 @@ Inspired by and referencing the Pi extension ecosystem:
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).

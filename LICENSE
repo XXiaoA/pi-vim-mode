@@ -19,29 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
---------------------------------------------------------------------------------
-Third-party notices
-
-This project is inspired by and references the following MIT-licensed projects;
-their copyright and permission notices are reproduced here as required by the
-MIT License.
-
--- earendil-works/pi (Pi, including the modal-editor.ts example and pi-tui) --
-Copyright (c) 2025 Mario Zechner
-
--- burneikis/pi-vim --
-Copyright (c) 2026 burneikis
-
--- lajarre/pi-vim --
-Copyright (c) 2026 lajarre
-
--- annapurna-himal/pi-vim-editor --
-Copyright (c) 2026 Annapurna
-
--- pekochan069/pi-vimmode --
-Copyright (c) 2026 pekochan069
-
-Each of the above is distributed under the MIT License, the full text of which
-is reproduced above. See the README "Acknowledgments" section for what was
-taken from each project.
