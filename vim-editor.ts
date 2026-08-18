@@ -4,7 +4,7 @@
  * Architecture:
  * - Extends CustomEditor (keeps app-level keybindings: Esc abort, Ctrl+D, model switching).
  * - Insert mode delegates to the base editor (autocomplete, paste, external editor).
- * - Normal/Visual modes are handled by modes/normal.ts and modes/visual.ts.
+ * - Normal/Visual modes are handled by normal.ts and visual.ts.
  * - Cursor positioning and text rewrites touch the base editor's internal state
  *   (same approach as pi-vim/burneikis: arrow-key emulation is wrong when lines wrap).
  */
@@ -14,8 +14,8 @@ import type { TUI, EditorOptions, EditorTheme } from "@earendil-works/pi-tui";
 import type { KeybindingsManager } from "@earendil-works/pi-coding-agent";
 import { createInitialState, MODE_LABELS, resetPending, type VimMode, type VimState } from "./state.ts";
 import { computeWrapRows, highlightRenderedLine, resolveSelectionStyle } from "./highlight.ts";
-import { handleNormalMode, type NormalModeContext } from "./modes/normal.ts";
-import { handleVisualMode, type VisualModeContext } from "./modes/visual.ts";
+import { handleNormalMode, type NormalModeContext } from "./normal.ts";
+import { handleVisualMode, type VisualModeContext } from "./visual.ts";
 
 export interface VimEditorOptions {
   startMode?: VimMode;

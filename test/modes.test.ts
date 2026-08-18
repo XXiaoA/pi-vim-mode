@@ -5,8 +5,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createInitialState, type VimState } from "../state.ts";
-import { handleNormalMode } from "../modes/normal.ts";
-import { handleVisualMode } from "../modes/visual.ts";
+import { handleNormalMode } from "../normal.ts";
+import { handleVisualMode } from "../visual.ts";
 
 interface CallLog {
   setMode: string[];

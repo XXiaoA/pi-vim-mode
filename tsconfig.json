@@ -14,5 +14,5 @@
       "@earendil-works/pi-tui": ["/usr/lib/node_modules/@earendil-works/pi-coding-agent/node_modules/@earendil-works/pi-tui/dist/index.d.ts"]
     }
   },
-  "include": ["*.ts", "modes/*.ts"]
+  "include": ["*.ts"]
 }

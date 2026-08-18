@@ -1,9 +1,9 @@
 /**
- * modes/visual.ts — Visual / Visual-line mode key handling.
+ * visual.ts — Visual / Visual-line mode key handling.
  */
 import { matchesKey } from "@earendil-works/pi-tui";
-import type { Pos, VimMode, VimState } from "../state.ts";
-import { resetPending } from "../state.ts";
+import type { Pos, VimMode, VimState } from "./state.ts";
+import { resetPending } from "./state.ts";
 import {
   charLeft,
   charRight,
@@ -26,7 +26,7 @@ import {
   WORDEnd,
   WORDForward,
   type MotionResult,
-} from "../motions.ts";
+} from "./motions.ts";
 import {
   applyOperator,
   extractText,
@@ -34,7 +34,7 @@ import {
   dedentRange,
   caseRange,
   type OperatorRange,
-} from "../operators.ts";
+} from "./operators.ts";
 
 export interface VisualModeContext {
   state: VimState;

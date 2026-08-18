@@ -1,9 +1,9 @@
 /**
- * modes/normal.ts — Normal-mode key handling.
+ * normal.ts — Normal-mode key handling.
  */
 import { matchesKey } from "@earendil-works/pi-tui";
-import type { Pos, VimMode, VimState } from "../state.ts";
-import { resetPending } from "../state.ts";
+import type { Pos, VimMode, VimState } from "./state.ts";
+import { resetPending } from "./state.ts";
 import {
   charLeft,
   charRight,
@@ -26,8 +26,8 @@ import {
   WORDEnd,
   WORDForward,
   type MotionResult,
-} from "../motions.ts";
-import { innerWord, resolveTextObject } from "../text-objects.ts";
+} from "./motions.ts";
+import { innerWord, resolveTextObject } from "./text-objects.ts";
 import {
   applyOperator,
   deleteRange,
@@ -35,7 +35,7 @@ import {
   lineRange,
   motionToRange,
   type OperatorRange,
-} from "../operators.ts";
+} from "./operators.ts";
 
 export interface NormalModeContext {
   state: VimState;
