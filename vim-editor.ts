@@ -175,7 +175,7 @@ export class VimEditor extends CustomEditor {
   }
 
   // ------------------------------------------------------------------
-  // Submit / EX command bridge
+  // Submit
   // ------------------------------------------------------------------
 
   /** Submit the current prompt through Pi's full submit path (clears the editor). */

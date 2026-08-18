@@ -14,7 +14,7 @@ const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme
 /** CJK scripts allow line breaks between any adjacent characters (pi-tui's cjkBreakRegex). */
 const CJK_BREAK = /[\p{Script_Extensions=Han}\p{Script_Extensions=Hiragana}\p{Script_Extensions=Katakana}\p{Script_Extensions=Hangul}\p{Script_Extensions=Bopomofo}]/u;
 
-export interface WrapRow {
+interface WrapRow {
   /** Char offset of the row's first grapheme in the source line. */
   startChar: number;
   /** Cell offset of the row start within the line. */

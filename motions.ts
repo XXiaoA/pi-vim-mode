@@ -12,7 +12,7 @@ export interface MotionResult {
   inclusive: boolean;
 }
 
-export type MotionFn = (
+type MotionFn = (
   lines: string[],
   cursor: Pos,
   count: number,
@@ -25,7 +25,7 @@ export function isWordChar(ch: string): boolean {
   return /[\p{L}\p{N}_]/u.test(ch);
 }
 
-export function isPunctuation(ch: string): boolean {
+function isPunctuation(ch: string): boolean {
   return !isWordChar(ch) && ch !== " " && ch !== "\t" && ch !== "";
 }
 
@@ -33,12 +33,12 @@ export function isWhitespace(ch: string): boolean {
   return ch === " " || ch === "\t";
 }
 
-export function clampCol(line: string, col: number): number {
+function clampCol(line: string, col: number): number {
   if (!line || line.length === 0) return 0;
   return Math.max(0, Math.min(col, line.length - 1));
 }
 
-export function clampLine(lines: string[], line: number): number {
+function clampLine(lines: string[], line: number): number {
   return Math.max(0, Math.min(line, lines.length - 1));
 }
 

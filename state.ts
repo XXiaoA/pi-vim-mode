@@ -3,7 +3,7 @@
  */
 export type VimMode = "insert" | "normal" | "visual" | "visual-line";
 
-export type PendingOp = "d" | "c" | "y" | "gu" | "gU" | "g~" | ">" | "<";
+type PendingOp = "d" | "c" | "y" | "gu" | "gU" | "g~" | ">" | "<";
 
 export interface Pos {
   line: number;
@@ -15,7 +15,7 @@ export interface RegisterData {
   linewise: boolean;
 }
 
-export interface VisualSelection {
+interface VisualSelection {
   mode: "visual" | "visual-line";
   anchor: Pos;
   cursor: Pos;

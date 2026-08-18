@@ -4,13 +4,13 @@
 import type { Pos } from "./state.ts";
 import { isWordChar, isWhitespace } from "./motions.ts";
 
-export interface TextObjectRange {
+interface TextObjectRange {
   start: Pos;
   end: Pos;
   linewise: boolean;
 }
 
-export type TextObjectFn = (lines: string[], cursor: Pos) => TextObjectRange | null;
+type TextObjectFn = (lines: string[], cursor: Pos) => TextObjectRange | null;
 
 // --- Word objects ---
 
@@ -67,7 +67,7 @@ export const aWord: TextObjectFn = (lines, cursor) => {
 };
 
 /** `iW` — inner WORD (whitespace-delimited). */
-export const innerWORD: TextObjectFn = (lines, cursor) => {
+const innerWORD: TextObjectFn = (lines, cursor) => {
   const line = lines[cursor.line] || "";
   if (line.length === 0) return null;
 
@@ -93,7 +93,7 @@ export const innerWORD: TextObjectFn = (lines, cursor) => {
 };
 
 /** `aW` — WORD plus trailing/leading whitespace. */
-export const aWORD: TextObjectFn = (lines, cursor) => {
+const aWORD: TextObjectFn = (lines, cursor) => {
   const inner = innerWORD(lines, cursor);
   if (!inner) return null;
 
@@ -171,11 +171,11 @@ function makeQuoteTextObject(quoteChar: string, inner: boolean): TextObjectFn {
 }
 
 export const innerDoubleQuote = makeQuoteTextObject('"', true);
-export const aDoubleQuote = makeQuoteTextObject('"', false);
-export const innerSingleQuote = makeQuoteTextObject("'", true);
-export const aSingleQuote = makeQuoteTextObject("'", false);
-export const innerBacktick = makeQuoteTextObject("`", true);
-export const aBacktick = makeQuoteTextObject("`", false);
+const aDoubleQuote = makeQuoteTextObject('"', false);
+const innerSingleQuote = makeQuoteTextObject("'", true);
+const aSingleQuote = makeQuoteTextObject("'", false);
+const innerBacktick = makeQuoteTextObject("`", true);
+const aBacktick = makeQuoteTextObject("`", false);
 
 // --- Bracket objects (buffer-wide, nesting-aware) ---
 
@@ -260,11 +260,11 @@ function makeBracketTextObject(
 }
 
 export const innerParen = makeBracketTextObject("(", ")", true);
-export const aParen = makeBracketTextObject("(", ")", false);
-export const innerBrace = makeBracketTextObject("{", "}", true);
-export const aBrace = makeBracketTextObject("{", "}", false);
-export const innerBracket = makeBracketTextObject("[", "]", true);
-export const aBracket = makeBracketTextObject("[", "]", false);
+const aParen = makeBracketTextObject("(", ")", false);
+const innerBrace = makeBracketTextObject("{", "}", true);
+const aBrace = makeBracketTextObject("{", "}", false);
+const innerBracket = makeBracketTextObject("[", "]", true);
+const aBracket = makeBracketTextObject("[", "]", false);
 
 /** Resolve `i{key}` / `a{key}` into a text object function. */
 export function resolveTextObject(prefix: string, key: string): TextObjectFn | null {
