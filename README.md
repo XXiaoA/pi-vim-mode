@@ -42,7 +42,7 @@ Enter (or Ctrl+Enter)             # submit the prompt
 
 | Mode | Enter with | Notes |
 |---|---|---|
-| INSERT | (start) `i a I A o O`, after `c`/`s`/`C`/`S` | Pi-native: autocomplete, paste, image, external editor. `Enter` / `Ctrl+Enter` submits. `Esc` / `Ctrl+[` / `Ctrl+C` (idle) → NORMAL |
+| INSERT | (start) `i a I A o O`, after `c`/`s`/`C`/`S` | Pi-native: autocomplete, paste, image, external editor. `Enter` / `Ctrl+Enter` submits, `Shift+Enter` newline. `Esc` / `Ctrl+[` / `Ctrl+C` (idle) → NORMAL |
 | NORMAL | `Esc`, `Ctrl+[`, `Ctrl+C` (idle) | `Enter` / `Ctrl+Enter` submits the prompt |
 | VISUAL | `v` | Character-wise selection, theme-background highlight |
 | V-LINE | `V` | Line-wise selection |
@@ -86,7 +86,8 @@ Optional `vimMode` key in `~/.pi/agent/settings.json` or project `.pi/settings.j
     "insertExit": { "enabled": true, "timeout": 250, "keys": ["jj"] },
     "modeChange": {
       "insert": "fcitx5-remote -o",
-      "normal": "fcitx5-remote -c"
+      "normal": "fcitx5-remote -c",
+      "query": "fcitx5-remote"
     }
   }
 }
@@ -100,6 +101,7 @@ Optional `vimMode` key in `~/.pi/agent/settings.json` or project `.pi/settings.j
 | `vimMode.selectionColor` | `"theme"` | Visual-selection **background**: `"theme"` (Pi's `selectedBg`, auto-adapts light/dark), a `#rrggbb` hex, or a 0-255 ANSI index |
 | `vimMode.modeChange.insert` | — | Shell command run on every transition **into** INSERT (IME on) |
 | `vimMode.modeChange.normal` | — | Shell command run when leaving INSERT for a non-insert mode (IME off) |
+| `vimMode.modeChange.query` | — | Optional state query (e.g. `fcitx5-remote`, prints `1` inactive / `2` active). When set, the IME state on leaving INSERT is remembered and restored on the next entry; without it, the insert command always runs |
 | `vimMode.insertExit.enabled` | `false` | Enable insert-mode exit sequences (e.g. `jj`): typing a sequence in INSERT leaves to NORMAL |
 | `vimMode.insertExit.timeout` | `250` | Buffer window (ms) between sequence keys; a lone first key is inserted after it times out |
 | `vimMode.insertExit.keys` | `["jj"]` | Exit sequences, each 2+ chars; any number allowed (e.g. `["jj", "jk"]`) |
@@ -150,15 +152,6 @@ Hooks run regardless of extension load order (registered synchronously at load; 
 ### Editor slot ownership
 
 Pi exposes a **single** editor factory per session — the last extension to call `ctx.ui.setEditorComponent()` wins. This extension mounts one tick after `session_start`, so it wins deterministically over extensions that mount synchronously; if another extension's editor-side rendering disappears, that is the slot handover (its non-editor features are unaffected — convert its render work into a render hook). To leave the slot to another extension entirely, set `vimMode.enabled: false` (or `/vimmode off`).
-
-## Limitations
-
-- **Undo granularity** — `u` delegates to Pi's native undo (one Pi edit step, not one vim change); `<C-r>` redo uses a linear mirror stack. No undo tree.
-- **Insert-mode exit sequences (e.g. `jj`)** — off by default; when enabled, the buffer window (default 250 ms) delays the first key of the sequence, and pinyin double-pinyin input that types the sequence may trigger an accidental mode switch.
-- **INSERT has no newline key** — `Enter` and `Ctrl+Enter` both submit (Pi-native). Multi-line input is done with `o` / `O` / `I` / `A` from NORMAL.
-- **No search / marks / macros / visual-block / replace mode / EX command line** — intentionally out of scope; `%` bracket matching and `r{char}` are included.
-- **Selection highlight is a background color** applied by render-time ANSI, distinct from the reverse-video caret. Row/column mapping mirrors pi-tui's word wrap, so wrapped lines, CJK characters and scrolled documents highlight accurately; only a grapheme wider than the whole editor (a paste marker in a very narrow window) is approximated.
-- **Visual sub-mode switches (`v` ↔ `V`) bypass the status hooks** — footer status and `pi-vim-mode:mode-change` only fire on INSERT ↔ NORMAL ↔ VISUAL/V-LINE boundaries.
 
 ## Development
 
