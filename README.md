@@ -42,7 +42,7 @@ Enter (or Ctrl+Enter)             # submit the prompt
 
 | Mode | Enter with | Notes |
 |---|---|---|
-| INSERT | (start) `i a I A o O`, after `c`/`s`/`C`/`S` | Pi-native: autocomplete, paste, image, external editor. `Enter` / `Ctrl+Enter` submits, `Shift+Enter` newline. `Esc` / `Ctrl+[` / `Ctrl+C` (idle) → NORMAL |
+| INSERT | (start) `i a I A o O`, after `c`/`s`/`C`/`S` | Pi-native: autocomplete, paste, image, external editor. `Enter` / `Ctrl+Enter` submits, `Shift+Enter` newline, `Ctrl+Z` undo / `Ctrl+Shift+Z` redo. `Esc` / `Ctrl+[` / `Ctrl+C` (idle) → NORMAL |
 | NORMAL | `Esc`, `Ctrl+[`, `Ctrl+C` (idle) | `Enter` / `Ctrl+Enter` submits the prompt |
 | VISUAL | `v` | Character-wise selection, theme-background highlight |
 | V-LINE | `V` | Line-wise selection |

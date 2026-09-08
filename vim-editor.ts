@@ -283,6 +283,15 @@ export class VimEditor extends CustomEditor {
       this.setMode("normal");
       return;
     }
+    // Ctrl+Z / Ctrl+Shift+Z: undo / redo in INSERT (Pi's Ctrl+Z is suspend)
+    if (matchesKey(data, "ctrl+z")) {
+      this.vimUndo();
+      return;
+    }
+    if (matchesKey(data, "ctrl+shift+z")) {
+      this.vimRedo();
+      return;
+    }
     // Enter: submit (Pi-native).
     if (matchesKey(data, "enter") || matchesKey(data, "return")) {
       super.handleInput(data);
